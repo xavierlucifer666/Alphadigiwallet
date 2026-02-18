@@ -1,0 +1,11 @@
+# Node
+node_modules/
+
+# VS Code / Visual Studio
+.vs/
+
+# Env files
+.env
+
+# Logs
+logs/
