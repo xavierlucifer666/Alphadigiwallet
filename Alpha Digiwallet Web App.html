@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Digiwallet - Digital Wallet Platform</title>
+    <style>
+        :root {
+            --color-primary: #32B8C6;
+            --color-primary-dark: #2AA3B0;
+            --color-primary-light: #4AC5D2;
+            --color-bg-dark: #0F2A33;
+            --color-bg-medium: #1A3F4D;
+            --color-bg-light: #F9FAFB;
+            --color-text-dark: #111827;
+            --color-text-medium: #6B7280;
+            --color-text-light: #F9FAFB;
+            --color-success: #10B981;
+            --color-warning: #F59E0B;
+            --color-error: #EF4444;
+            --color-border: #E5E7EB;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--color-text-dark);
+            background: var(--color-bg-light);
+        }
+
+        /* Utility Classes */
+        .hidden { display: none !important; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+        .text-center { text-align: center; }
+        .text-success { color: var(--color-success); }
+        .text-error { color: var(--color-error); }
+        .text-warning { color: var(--color-warning); }
+
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(135deg, var(--color-bg-dark) 0%, var(--color-bg-medium) 100%);
+            color: var(--color-text-light);
+            padding: 1rem 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .navbar-link {
+            color: var(--color-text-light);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .navbar-link:hover {
+            background: rgba(50, 184, 198, 0.1);
+            color: var(--color-primary);
+        }
+
+        /* Auth Pages */
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--color-bg-dark) 0%, var(--color-bg-medium) 100%);
+            padding: 2rem 1rem;
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-subtitle {
+            color: var(--color-text-medium);
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--color-text-dark);
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(50, 184, 198, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(50, 184, 198, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: var(--color-text-medium);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--color-text-medium);
+            font-size: 0.9rem;
+        }
+
+        .auth-link {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--color-success);
+            border: 1px solid var(--color-success);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--color-error);
+            border: 1px solid var(--color-error);
+        }
+
+        /* Dashboard */
+        .dashboard-container {
+            padding: 2rem 0;
+            min-height: calc(100vh - 70px);
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-title {
+            font-size: 2rem;
+            color: var(--color-text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-subtitle {
+            color: var(--color-text-medium);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--color-border);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--color-text-medium);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .icon-primary { background: rgba(50, 184, 198, 0.1); color: var(--color-primary); }
+        .icon-success { background: rgba(16, 185, 129, 0.1); color: var(--color-success); }
+        .icon-warning { background: rgba(245, 158, 11, 0.1); color: var(--color-warning); }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-text-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .card-label {
+            font-size: 0.85rem;
+            color: var(--color-text-medium);
+        }
+
+        /* Transaction Table */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--color-border);
+            overflow-x: auto;
+        }
+
+        .table-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .table-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--color-text-dark);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-text-medium);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        td {
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 0.9rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--color-success);
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--color-warning);
+        }
+
+        .status-failed {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--color-error);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--color-text-dark);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--color-border);
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .empty-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--color-text-dark);
+        }
+
+        .empty-text {
+            color: var(--color-text-medium);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid var(--color-border);
+            border-top: 3px solid var(--color-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar-menu {
+                gap: 0.75rem;
+            }
+
+            .navbar-link {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .modal {
+                margin: 1rem;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation (hidden on auth pages) -->
+    <nav id="navbar" class="navbar hidden">
+        <div class="container navbar-content">
+            <a href="#" class="navbar-brand">Alpha Digiwallet</a>
+            <div class="navbar-menu">
+                <span id="navUserName" class="navbar-link"></span>
+                <a href="#" onclick="app.showDashboard()" class="navbar-link">Dashboard</a>
+                <a href="#" onclick="app.logout()" class="navbar-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">Alpha Digiwallet</div>
+                <p class="auth-subtitle">Sign in to your account</p>
+            </div>
+
+            <div id="loginAlert"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-input" id="loginEmail" required placeholder="you@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="loginPassword" required placeholder="••••••••">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Sign In</button>
+            </form>
+
+            <div class="auth-footer">
+                Don't have an account? <a class="auth-link" onclick="app.showRegister()">Sign up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Page -->
+    <div id="registerPage" class="auth-container hidden">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">Alpha Digiwallet</div>
+                <p class="auth-subtitle">Create your account</p>
+            </div>
+
+            <div id="registerAlert"></div>
+
+            <form id="registerForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" class="form-input" id="regFirstName" required placeholder="John">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" class="form-input" id="regLastName" required placeholder="Doe">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-input" id="regEmail" required placeholder="you@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" class="form-input" id="regPhone" required placeholder="+971501234567">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="regPassword" required placeholder="Min. 8 characters">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Create Account</button>
+            </form>
+
+            <div class="auth-footer">
+                Already have an account? <a class="auth-link" onclick="app.showLogin()">Sign in</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboardPage" class="hidden">
+        <div class="dashboard-container container">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Dashboard</h1>
+                <p class="dashboard-subtitle">Manage your digital wallet</p>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Wallet Balance</span>
+                        <div class="card-icon icon-primary">💰</div>
+                    </div>
+                    <div class="card-value" id="walletBalance">$0.00</div>
+                    <div class="card-label">USD</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Quick Actions</span>
+                        <div class="card-icon icon-success">⚡</div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary btn-sm" onclick="app.showTopupModal()">Top Up</button>
+                        <button class="btn btn-secondary btn-sm" onclick="app.showTransferModal()">Transfer</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Wallet ID</span>
+                        <div class="card-icon icon-warning">🔑</div>
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--color-text-medium); word-break: break-all;" id="walletId">Loading...</div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <h2 class="table-title">Recent Transactions</h2>
+                </div>
+                <div id="transactionsContent">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Up Modal -->
+    <div id="topupModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Top Up Wallet</h3>
+            </div>
+            <div class="modal-body">
+                <div id="topupAlert"></div>
+                <form id="topupForm">
+                    <div class="form-group">
+                        <label class="form-label">Amount (USD)</label>
+                        <input type="number" class="form-input" id="topupAmount" required min="1" step="0.01" placeholder="100.00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Payment Method</label>
+                        <select class="form-input" id="topupMethod" required>
+                            <option value="">Select payment method</option>
+                            <option value="credit_card">Credit Card</option>
+                            <option value="debit_card">Debit Card</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" onclick="app.hideTopupModal()">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="app.submitTopup()">Top Up</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfer Modal -->
+    <div id="transferModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Transfer Funds</h3>
+            </div>
+            <div class="modal-body">
+                <div id="transferAlert"></div>
+                <form id="transferForm">
+                    <div class="form-group">
+                        <label class="form-label">Recipient Wallet ID</label>
+                        <input type="text" class="form-input" id="transferWalletId" required placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Amount (USD)</label>
+                        <input type="number" class="form-input" id="transferAmount" required min="1" step="0.01" placeholder="50.00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description (Optional)</label>
+                        <input type="text" class="form-input" id="transferDesc" placeholder="Payment for...">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" onclick="app.hideTransferModal()">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="app.submitTransfer()">Transfer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3000/api';
+
+        // Application State
+        const app = {
+            token: localStorage.getItem('token'),
+            user: null,
+            wallet: null,
+
+            // API Helper
+            async api(endpoint, options = {}) {
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                };
+
+                if (this.token) {
+                    headers['Authorization'] = `Bearer ${this.token}`;
+                }
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                        ...options,
+                        headers
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Request failed');
+                    }
+
+                    return data;
+                } catch (error) {
+                    throw error;
+                }
+            },
+
+            // Alert Helper
+            showAlert(elementId, message, type = 'error') {
+                const alertEl = document.getElementById(elementId);
+                alertEl.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+                setTimeout(() => { alertEl.innerHTML = ''; }, 5000);
+            },
+
+            // Navigation
+            showLogin() {
+                document.getElementById('loginPage').classList.remove('hidden');
+                document.getElementById('registerPage').classList.add('hidden');
+                document.getElementById('dashboardPage').classList.add('hidden');
+                document.getElementById('navbar').classList.add('hidden');
+            },
+
+            showRegister() {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('registerPage').classList.remove('hidden');
+                document.getElementById('dashboardPage').classList.add('hidden');
+                document.getElementById('navbar').classList.add('hidden');
+            },
+
+            showDashboard() {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('registerPage').classList.add('hidden');
+                document.getElementById('dashboardPage').classList.remove('hidden');
+                document.getElementById('navbar').classList.remove('hidden');
+                this.loadDashboardData();
+            },
+
+            // Auth Functions
+            async login(email, password) {
+                try {
+                    const data = await this.api('/auth/login', {
+                        method: 'POST',
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    this.token = data.token;
+                    this.user = data.user;
+                    localStorage.setItem('token', data.token);
+                    
+                    document.getElementById('navUserName').textContent = `${data.user.firstName} ${data.user.lastName}`;
+                    this.showDashboard();
+                } catch (error) {
+                    this.showAlert('loginAlert', error.message);
+                }
+            },
+
+            async register(userData) {
+                try {
+                    await this.api('/auth/register', {
+                        method: 'POST',
+                        body: JSON.stringify(userData)
+                    });
+
+                    this.showAlert('registerAlert', 'Registration successful! Please login.', 'success');
+                    setTimeout(() => this.showLogin(), 2000);
+                } catch (error) {
+                    this.showAlert('registerAlert', error.message);
+                }
+            },
+
+            logout() {
+                this.token = null;
+                this.user = null;
+                this.wallet = null;
+                localStorage.removeItem('token');
+                this.showLogin();
+            },
+
+            // Dashboard Functions
+            async loadDashboardData() {
+                try {
+                    // Load wallet
+                    this.wallet = await this.api('/wallet');
+                    document.getElementById('walletBalance').textContent = `$${this.wallet.balance.toFixed(2)}`;
+                    document.getElementById('walletId').textContent = this.wallet.walletId;
+
+                    // Load transactions
+                    const txData = await this.api('/transactions');
+                    this.renderTransactions(txData.transactions);
+                } catch (error) {
+                    console.error('Error loading dashboard:', error);
+                }
+            },
+
+            renderTransactions(transactions) {
+                const container = document.getElementById('transactionsContent');
+                
+                if (transactions.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <h3 class="empty-title">No transactions yet</h3>
+                            <p class="empty-text">Your transaction history will appear here</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const tableHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${transactions.map(tx => `
+                                <tr>
+                                    <td>${new Date(tx.createdAt).toLocaleDateString()}</td>
+                                    <td style="text-transform: capitalize;">${tx.type}</td>
+                                    <td class="${tx.fromWalletId === this.wallet.walletId ? 'text-error' : 'text-success'}">
+                                        ${tx.fromWalletId === this.wallet.walletId ? '-' : '+'}$${tx.amount.toFixed(2)}
+                                    </td>
+                                    <td><span class="status-badge status-${tx.status}">${tx.status}</span></td>
+                                    <td>${tx.description || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                container.innerHTML = tableHTML;
+            },
+
+            // Modal Functions
+            showTopupModal() {
+                document.getElementById('topupModal').classList.remove('hidden');
+            },
+
+            hideTopupModal() {
+                document.getElementById('topupModal').classList.add('hidden');
+                document.getElementById('topupForm').reset();
+                document.getElementById('topupAlert').innerHTML = '';
+            },
+
+            async submitTopup() {
+                const amount = parseFloat(document.getElementById('topupAmount').value);
+                const paymentMethod = document.getElementById('topupMethod').value;
+
+                if (!amount || !paymentMethod) {
+                    this.showAlert('topupAlert', 'Please fill all fields');
+                    return;
+                }
+
+                try {
+                    await this.api('/wallet/topup', {
+                        method: 'POST',
+                        body: JSON.stringify({ amount, paymentMethod })
+                    });
+
+                    this.showAlert('topupAlert', 'Top-up successful!', 'success');
+                    setTimeout(() => {
+                        this.hideTopupModal();
+                        this.loadDashboardData();
+                    }, 1500);
+                } catch (error) {
+                    this.showAlert('topupAlert', error.message);
+                }
+            },
+
+            showTransferModal() {
+                document.getElementById('transferModal').classList.remove('hidden');
+            },
+
+            hideTransferModal() {
+                document.getElementById('transferModal').classList.add('hidden');
+                document.getElementById('transferForm').reset();
+                document.getElementById('transferAlert').innerHTML = '';
+            },
+
+            async submitTransfer() {
+                const toWalletId = document.getElementById('transferWalletId').value.trim();
+                const amount = parseFloat(document.getElementById('transferAmount').value);
+                const description = document.getElementById('transferDesc').value.trim();
+
+                if (!toWalletId || !amount) {
+                    this.showAlert('transferAlert', 'Please fill required fields');
+                    return;
+                }
+
+                try {
+                    await this.api('/transactions/transfer', {
+                        method: 'POST',
+                        body: JSON.stringify({ toWalletId, amount, description })
+                    });
+
+                    this.showAlert('transferAlert', 'Transfer successful!', 'success');
+                    setTimeout(() => {
+                        this.hideTransferModal();
+                        this.loadDashboardData();
+                    }, 1500);
+                } catch (error) {
+                    this.showAlert('transferAlert', error.message);
+                }
+            },
+
+            // Initialize
+            init() {
+                // Login form
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('loginEmail').value;
+                    const password = document.getElementById('loginPassword').value;
+                    this.login(email, password);
+                });
+
+                // Register form
+                document.getElementById('registerForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const userData = {
+                        firstName: document.getElementById('regFirstName').value,
+                        lastName: document.getElementById('regLastName').value,
+                        email: document.getElementById('regEmail').value,
+                        phone: document.getElementById('regPhone').value,
+                        password: document.getElementById('regPassword').value
+                    };
+                    this.register(userData);
+                });
+
+                // Check if already logged in
+                if (this.token) {
+                    this.showDashboard();
+                } else {
+                    this.showLogin();
+                }
+            }
+        };
+
+        // Start app when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>
