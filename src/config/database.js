@@ -8,7 +8,7 @@ const config = {
   password: process.env.DB_PASSWORD,
   port: parseInt(process.env.DB_PORT || '1433'),
   options: {
-    instanceName: process.env.DB_INSTANCE, // 🔥 MUST ADD THIS by chat GPT
+    // instanceName: process.env.DB_INSTANCE, // 🔥 MUST ADD THIS by chat GPT
     encrypt: false,                          // Change to false for local
     trustServerCertificate: true,
     enableArithAbort: true
