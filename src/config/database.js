@@ -6,7 +6,8 @@ const config = {
   database: process.env.DB_DATABASE,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  port: parseInt(process.env.DB_PORT || '1433'),
+  // port: parseInt(process.env.DB_PORT || '1433'),
+  port: Number(process.env.DB_PORT || 1433),
   options: {
     // instanceName: process.env.DB_INSTANCE, // 🔥 MUST ADD THIS by chat GPT
     encrypt: false,                          // Change to false for local
