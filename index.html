@@ -714,16 +714,14 @@
             location.replace(`https:${location.href.substring(location.protocol.length)}`);
         }
 
-        // Configuration
-        const API_BASE_URL = window.location.hostname === 'localhost' 
+        const API_BASE_URL = window.location.hostname === 'localhost'
             ? 'http://localhost:3000/api'
             : 'https://digiwalletapi.zaffrantech.com/api';
 
-        // SECURITY: Content Security Policy via meta tag
-        const cspMeta = document.createElement('meta');
-        cspMeta.httpEquiv = 'Content-Security-Policy';
-        cspMeta.content = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' " + API_BASE_URL;
-        document.head.appendChild(cspMeta);
+        // FIX 3: REMOVED the dynamic CSP meta tag injection from JS.
+        // It was creating a second conflicting CSP that was MORE restrictive
+        // (missing the API domain in connect-src), which caused the block.
+        // The correct CSP is already declared in the <head> above.
 
         // SECURITY: Input sanitization helper
         const sanitizeInput = (input) => {
@@ -755,45 +753,39 @@
             return { valid: true };
         };
 
-        // Application State (NO localStorage - security vulnerability)
+        // Application State — token stored in memory only (not localStorage)
         const app = {
             user: null,
             wallet: null,
-            csrfToken: null,
+            authToken: null, // Bearer token stored in JS memory
 
-            // SECURITY: API Helper with CSRF protection and cookie-based auth
+            // API Helper — uses Bearer token, no credentials:include (avoids CORS preflight issues)
             async api(endpoint, options = {}) {
                 const headers = {
                     'Content-Type': 'application/json',
                     ...options.headers
                 };
 
-                // SECURITY: Include CSRF token for state-changing requests
-                if (this.csrfToken && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method?.toUpperCase())) {
-                    headers['X-CSRF-Token'] = this.csrfToken;
+                // Attach Bearer token if available
+                if (this.authToken) {
+                    headers['Authorization'] = 'Bearer ' + this.authToken;
                 }
 
                 try {
-                    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    const response = await fetch(API_BASE_URL + endpoint, {
                         ...options,
-                        headers,
-                        credentials: 'include' // SECURITY: Include HTTP-only cookies
+                        headers
+                        // credentials:'include' removed — requires server Access-Control-Allow-Credentials
+                        // which causes CORS failure when not configured on backend
                     });
-
-                    // SECURITY: Update CSRF token from response header
-                    const newCsrfToken = response.headers.get('X-CSRF-Token');
-                    if (newCsrfToken) {
-                        this.csrfToken = newCsrfToken;
-                    }
 
                     const data = await response.json();
 
                     if (!response.ok) {
-                        // SECURITY: Handle rate limiting
                         if (response.status === 429) {
                             throw new Error('Too many requests. Please try again later.');
                         }
-                        throw new Error(data.error || 'Request failed');
+                        throw new Error(data.error || data.message || 'Request failed');
                     }
 
                     return data;
@@ -844,9 +836,11 @@
                         body: JSON.stringify({ email: sanitizedEmail, password })
                     });
 
-                    // SECURITY: Store user data (auth handled by HTTP-only cookies)
+                    // Store user and auth token in sessionStorage (survives refresh, cleared on tab close)
                     this.user = data.user;
-                    this.csrfToken = data.csrfToken;
+                    this.authToken = data.token || data.accessToken || data.authToken || null;
+                    sessionStorage.setItem('authToken', this.authToken);
+                    sessionStorage.setItem('authUser', JSON.stringify(this.user));
                     
                     document.getElementById('navUserName').textContent = `${sanitizeInput(data.user.firstName)} ${sanitizeInput(data.user.lastName)}`;
                     this.showDashboard();
@@ -906,10 +900,12 @@
                 } catch (error) {
                     console.error('Logout error:', error);
                 } finally {
-                    // Clear client state
+                    // Clear client state and sessionStorage
                     this.user = null;
                     this.wallet = null;
-                    this.csrfToken = null;
+                    this.authToken = null;
+                    sessionStorage.removeItem('authToken');
+                    sessionStorage.removeItem('authUser');
                     this.showLogin();
                 }
             },
@@ -1111,18 +1107,20 @@
                     this.register(userData);
                 });
 
-                // SECURITY: Check for existing session via HTTP-only cookie
-                try {
-                    const sessionData = await this.api('/auth/session');
-                    if (sessionData.user) {
-                        this.user = sessionData.user;
-                        this.csrfToken = sessionData.csrfToken;
-                        document.getElementById('navUserName').textContent = `${sanitizeInput(sessionData.user.firstName)} ${sanitizeInput(sessionData.user.lastName)}`;
+                // Restore session from sessionStorage if available
+                const savedToken = sessionStorage.getItem('authToken');
+                const savedUser = sessionStorage.getItem('authUser');
+                if (savedToken && savedUser) {
+                    try {
+                        this.authToken = savedToken;
+                        this.user = JSON.parse(savedUser);
+                        document.getElementById('navUserName').textContent = sanitizeInput(this.user.firstName) + ' ' + sanitizeInput(this.user.lastName);
                         this.showDashboard();
-                    } else {
+                    } catch (e) {
+                        sessionStorage.clear();
                         this.showLogin();
                     }
-                } catch (error) {
+                } else {
                     this.showLogin();
                 }
             }
