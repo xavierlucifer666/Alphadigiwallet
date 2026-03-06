@@ -673,7 +673,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary btn-sm" onclick="app.hideTopupModal()">Cancel</button>
-                <button class="btn btn-primary btn-sm" onclick="app.submitTopup()">Top Up</button>
+                <button class="btn btn-primary btn-sm" onclick="app.handleTopupMethodSelect()">Continue</button>
             </div>
         </div>
     </div>
@@ -706,6 +706,73 @@
                 <button class="btn btn-primary btn-sm" onclick="app.submitTransfer()">Transfer</button>
             </div>
         </div>
+    </div>
+
+    <!-- Card Top Up Modal (DEMO ONLY – NO REAL PAYMENT) -->
+    <div id="cardTopupModal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Top Up by Card</h3>
+        </div>
+        <div class="modal-body">
+          <div id="cardTopupAlert"></div>
+          <form id="cardTopupForm">
+            <div class="form-group">
+              <label class="form-label">Card Holder Name*</label>
+              <input type="text" class="form-input" id="cardHolder" required placeholder="Name on card" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Card Number*</label>
+              <input type="text" class="form-input" id="cardNumber" required maxlength="19" placeholder="4111 1111 1111 1111" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Expiry (MM/YY)*</label>
+                <input type="text" class="form-input" id="cardExpiry" required maxlength="5" placeholder="12/28" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">CVV*</label>
+                <input type="password" class="form-input" id="cardCvv" required maxlength="4" placeholder="123" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Top Up Amount (USD)*</label>
+              <input type="number" class="form-input" id="cardTopupAmount" required min="1" step="0.01" placeholder="100.00" />
+            </div>
+            <p class="card-label" style="margin-top:0.5rem;">
+              This is a <strong>demo</strong> card flow for testing only. No real payment is processed.
+            </p>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" type="button" onclick="app.hideCardTopupModal()">Cancel</button>
+          <button class="btn btn-primary btn-sm" type="button" onclick="app.submitCardTopupDemo()">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- OTP Modal (DEMO ONLY – FIXED CODE 123456) -->
+    <div id="otpModal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Enter OTP</h3>
+        </div>
+        <div class="modal-body">
+          <div id="otpAlert"></div>
+          <p class="card-label" style="margin-bottom:0.75rem;">
+            A one-time password has been sent to your phone / email (demo).<br>
+            Use code <strong>123456</strong> to complete this test transaction.
+          </p>
+          <div class="form-group">
+            <label class="form-label">6‑digit Code</label>
+            <input type="text" class="form-input" id="otpCode" maxlength="6" placeholder="123456" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" type="button" onclick="app.cancelOtp()">Cancel</button>
+          <button class="btn btn-primary btn-sm" type="button" onclick="app.confirmOtpDemo()">Verify</button>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -1084,6 +1151,129 @@
                 }
             },
 
+            // ===== TOPUP METHOD ROUTER =====
+            handleTopupMethodSelect() {
+                const method = document.getElementById('topupMethod').value;
+                if (!method) {
+                    this.showAlert('topupAlert', 'Please select a payment method');
+                    return;
+                }
+                if (method === 'credit_card' || method === 'debit_card') {
+                    // Pre-fill amount if already entered
+                    const amount = document.getElementById('topupAmount').value;
+                    if (amount) document.getElementById('cardTopupAmount').value = amount;
+                    this.hideTopupModal();
+                    this.showCardTopupModal();
+                } else if (method === 'bank_transfer') {
+                    // Store pending amount and go straight to OTP
+                    const amount = parseFloat(document.getElementById('topupAmount').value);
+                    if (!amount || amount <= 0) {
+                        this.showAlert('topupAlert', 'Please enter a valid amount');
+                        return;
+                    }
+                    this.demoCardTopupPendingAmount = amount;
+                    this.demoPaymentMethod = 'bank_transfer';
+                    this.hideTopupModal();
+                    this.showOtpModal();
+                }
+            },
+
+            // ===== DEMO CARD + OTP FLOW =====
+            demoCardTopupPendingAmount: 0,
+            demoPaymentMethod: '',
+
+            showCardTopupModal() {
+                document.getElementById('cardTopupModal').classList.remove('hidden');
+            },
+
+            hideCardTopupModal() {
+                document.getElementById('cardTopupModal').classList.add('hidden');
+                document.getElementById('cardTopupForm').reset();
+                document.getElementById('cardTopupAlert').innerHTML = '';
+            },
+
+            showOtpModal() {
+                document.getElementById('otpModal').classList.remove('hidden');
+            },
+
+            hideOtpModal() {
+                document.getElementById('otpModal').classList.add('hidden');
+            },
+
+            cancelOtp() {
+                this.demoCardTopupPendingAmount = 0;
+                this.demoPaymentMethod = '';
+                document.getElementById('otpCode').value = '';
+                document.getElementById('otpAlert').innerHTML = '';
+                this.hideOtpModal();
+            },
+
+            // Step 1: Validate card form then show OTP
+            submitCardTopupDemo() {
+                const holder = document.getElementById('cardHolder').value.trim();
+                const number = document.getElementById('cardNumber').value.replace(/\s+/g, '');
+                const expiry = document.getElementById('cardExpiry').value.trim();
+                const cvv = document.getElementById('cardCvv').value.trim();
+                const amount = parseFloat(document.getElementById('cardTopupAmount').value);
+
+                if (!holder || !number || !expiry || !cvv || !amount || amount <= 0) {
+                    this.showAlert('cardTopupAlert', 'Please fill in all card details and amount.', 'error');
+                    return;
+                }
+                if (number.length < 12) {
+                    this.showAlert('cardTopupAlert', 'Please enter a valid card number.', 'error');
+                    return;
+                }
+                if (cvv.length < 3) {
+                    this.showAlert('cardTopupAlert', 'Please enter a valid CVV.', 'error');
+                    return;
+                }
+                if (amount > 50000) {
+                    this.showAlert('cardTopupAlert', 'Amount must be $50,000 or less.', 'error');
+                    return;
+                }
+
+                this.demoCardTopupPendingAmount = amount;
+                this.demoPaymentMethod = 'card';
+                this.hideCardTopupModal();
+                this.showOtpModal();
+            },
+
+            // Step 2: Verify OTP then call real topup API
+            async confirmOtpDemo() {
+                const code = document.getElementById('otpCode').value.trim();
+                if (code !== '123456') {
+                    this.showAlert('otpAlert', 'Invalid OTP. Use 123456 for demo.', 'error');
+                    return;
+                }
+
+                const amount = this.demoCardTopupPendingAmount;
+                if (!amount || amount <= 0) {
+                    this.showAlert('otpAlert', 'No pending top-up amount found.', 'error');
+                    return;
+                }
+
+                const paymentMethod = this.demoPaymentMethod === 'bank_transfer'
+                    ? 'bank_transfer'
+                    : document.getElementById('topupMethod').value || 'credit_card';
+
+                try {
+                    await this.api('/wallet/topup', {
+                        method: 'POST',
+                        body: JSON.stringify({ amount, paymentMethod })
+                    });
+
+                    this.demoCardTopupPendingAmount = 0;
+                    this.demoPaymentMethod = '';
+                    document.getElementById('otpCode').value = '';
+                    this.hideOtpModal();
+                    this.showAlert('loginAlert', 'Top-up successful!', 'success');
+                    this.loadDashboardData();
+                } catch (error) {
+                    this.showAlert('otpAlert', error.message, 'error');
+                }
+            },
+
             // SECURITY: Initialize with session check
             async init() {
                 // Login form
@@ -1105,6 +1295,19 @@
                         password: document.getElementById('regPassword').value
                     };
                     this.register(userData);
+                });
+
+                // Card number auto-format: spaces every 4 digits
+                document.getElementById('cardNumber').addEventListener('input', function () {
+                    let v = this.value.replace(/\D/g, '').substring(0, 16);
+                    this.value = v.replace(/(\d{4})(?=\d)/g, '$1 ');
+                });
+
+                // Expiry auto-format: MM/YY
+                document.getElementById('cardExpiry').addEventListener('input', function () {
+                    let v = this.value.replace(/\D/g, '').substring(0, 4);
+                    if (v.length >= 3) v = v.substring(0, 2) + '/' + v.substring(2);
+                    this.value = v;
                 });
 
                 // Restore session from sessionStorage if available
